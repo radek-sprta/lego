@@ -56,20 +56,8 @@ func NewDNSProvider() (*DNSProvider, error) {
 // NewDNSProviderConfig return a DNSProvider instance configured for Digital Ocean.
 func NewDNSProviderConfig() (*Config, error) {
 	values, err := env.Get("CLOUDDNS_CLIENT_ID", "CLOUDDNS_EMAIL", "CLOUDDNS_PASSWORD")
-    // FIXME these errors never get printed
 	if err != nil {
 		return nil, fmt.Errorf("clouddns: %v", err)
-	}
-	if values["CLOUDDNS_CLIENT_ID"] == "" {
-		return nil, fmt.Errorf("clouddns: clientId missing")
-	}
-
-	if values["CLOUDDNS_EMAIL"] == "" {
-		return nil, fmt.Errorf("cloudds: email missing")
-	}
-
-	if values["CLOUDDNS_PASSWORD"] == "" {
-		return nil, fmt.Errorf("clouddns: password missing")
 	}
 
 	config := NewDefaultConfig()
@@ -122,16 +110,3 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	return nil
 }
-
-//func main() {
-//    provider, err := NewDNSProvider()
-//    if err != nil {
-//		fmt.Println(err)
-//        os.Exit(1)
-//    }
-//    fmt.Println("Adding challenge record")
-//    provider.Present("lego.rodinnakniha.cz", "testtoken", "keyauth")
-//    time.Sleep(time.Second * 20)
-//    fmt.Println("Removing challenge record")
-//    provider.CleanUp("lego.rodinnakniha.cz", "testtoken", "keyauth")
-//}
