@@ -28,6 +28,7 @@ type cloudDnsClient struct {
     ClientId string
 	Email string
 	Password string
+    TTL     int
 	HTTPClient         *http.Client
 }
 
@@ -44,13 +45,13 @@ type searchBlock struct {
     Value    string
 }
 
-// TODO Rewrite to use config
-func NewCloudDnsClient(clientId string, email string, password string) (*cloudDnsClient) {
+func NewCloudDnsClient(clientId string, email string, password string, ttl int) (*cloudDnsClient) {
 	return &cloudDnsClient{
         AccessToken: "",
 		ClientId:    clientId,
 		Email:       email,
 		Password:    password,
+        TTL:         ttl,
 		HTTPClient:  &http.Client{},
 	}
 }
@@ -158,7 +159,7 @@ func (c *cloudDnsClient) getDomainId(zone string) (string, error) {
     var result map[string]interface{}
     json.Unmarshal(resp, &result)
 
-    // Let's dig for the path .["items"][0]["id"]
+    // Let's dig for the .["items"][0]["id"] path 
     items := result["items"].([]interface{})
     domainDetails := items[0].(map[string]interface{})
     domainId := domainDetails["id"].(string)
@@ -239,9 +240,8 @@ func (c *cloudDnsClient) newRequest(method, reqURL string, body io.Reader) (*htt
 	return req, nil
 }
 
-// TODO Pass TTL through parameter
 func (c *cloudDnsClient) publishRecords(domainId string) (error) {
-    soaTtl := map[string]int {"soaTtl": 300}
+    soaTtl := map[string]int {"soaTtl": c.TTL}
     body, err := json.Marshal(soaTtl)
     if err != nil {
         return err

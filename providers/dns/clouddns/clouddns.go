@@ -5,7 +5,6 @@ package clouddns
 import (
 	"errors"
 	"fmt"
-//  "os"
 	"time"
 
 	"github.com/go-acme/lego/v3/challenge/dns01"
@@ -26,7 +25,7 @@ type Config struct {
 // NewDefaultConfig returns a default configuration for the DNSProvider
 func NewDefaultConfig() *Config {
 	return &Config{
-		TTL:                env.GetOrDefaultInt("CLOUDDNS_TTL", 30),
+		TTL:                env.GetOrDefaultInt("CLOUDDNS_TTL", 300),
 		PropagationTimeout: env.GetOrDefaultSecond("CLOUDDNS_PROPAGATION_TIMEOUT", 120*time.Second),
 		PollingInterval:    env.GetOrDefaultSecond("CLOUDDNS_POLLING_INTERVAL", 5*time.Second),
 	}
@@ -45,9 +44,9 @@ type DNSProvider struct {
 func NewDNSProvider() (*DNSProvider, error) {
     config, err := NewDNSProviderConfig()
     if err != nil {
-		return nil, fmt.Errorf("clouddns: could not make config")
+		return nil, err
     }
-    client := NewCloudDnsClient(config.ClientId, config.Email, config.Password)
+    client := NewCloudDnsClient(config.ClientId, config.Email, config.Password, config.TTL)
     return &DNSProvider{
         client: client,
         config: config,
@@ -90,16 +89,11 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-// TODO rewrite Present, Cleanup & we are ready to rumble
 // Present creates a TXT record using the specified parameters
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	fqdn, value := dns01.GetRecord(domain, keyAuth)
-    // FIXME remove
-    fmt.Println(fqdn)
-    fmt.Println(value)
 
 	authZone, err := dns01.FindZoneByFqdn(fqdn)
-    fmt.Println(authZone)
 	if err != nil {
 		return fmt.Errorf("clouddns: %v", err)
 	}
