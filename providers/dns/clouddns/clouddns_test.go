@@ -24,37 +24,37 @@ func TestNewDNSProvider(t *testing.T) {
 		{
 			desc: "success client_id, email, password",
 			envVars: map[string]string{
-				"CLOUDDNS_CLIENT_ID":   "client123",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_CLIENT_ID": "client123",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
 		},
 		{
 			desc: "missing clientId",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_CLIENT_ID",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_CLIENT_ID",
 		},
 		{
 			desc: "missing email",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "client123",
-				"CLOUDDNS_EMAIL": "",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_EMAIL":     "",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_EMAIL",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_EMAIL",
 		},
 		{
 			desc: "missing password",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "client123",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_PASSWORD",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_PASSWORD",
 		},
 	}
 
@@ -87,37 +87,37 @@ func TestNewDNSProviderConfig(t *testing.T) {
 		{
 			desc: "success client_id, email, password",
 			envVars: map[string]string{
-				"CLOUDDNS_CLIENT_ID":   "client123",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_CLIENT_ID": "client123",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
 		},
 		{
 			desc: "missing clientId",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_CLIENT_ID",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_CLIENT_ID",
 		},
 		{
 			desc: "missing email",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "client123",
-				"CLOUDDNS_EMAIL": "",
-				"CLOUDDNS_PASSWORD": "password123",
+				"CLOUDDNS_EMAIL":     "",
+				"CLOUDDNS_PASSWORD":  "password123",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_EMAIL",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_EMAIL",
 		},
 		{
 			desc: "missing password",
 			envVars: map[string]string{
 				"CLOUDDNS_CLIENT_ID": "client123",
-				"CLOUDDNS_EMAIL":   "test@example.com",
-				"CLOUDDNS_PASSWORD": "",
+				"CLOUDDNS_EMAIL":     "test@example.com",
+				"CLOUDDNS_PASSWORD":  "",
 			},
-            expected: "clouddns: some credentials information are missing: CLOUDDNS_PASSWORD",
+			expected: "clouddns: some credentials information are missing: CLOUDDNS_PASSWORD",
 		},
 	}
 

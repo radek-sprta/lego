@@ -13,9 +13,9 @@ import (
 
 // Config is used to configure the creation of the DNSProvider
 type Config struct {
-	ClientId  string
-	Email     string
-	Password  string
+	ClientId string
+	Email    string
+	Password string
 
 	TTL                int
 	PropagationTimeout time.Duration
@@ -34,23 +34,23 @@ func NewDefaultConfig() *Config {
 // DNSProvider is an implementation of the challenge.Provider interface
 // that uses CloudDNS API to manage TXT records for a domain.
 type DNSProvider struct {
-    client      *cloudDnsClient
-	config      *Config
+	client *cloudDnsClient
+	config *Config
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for CloudDNS.
 // Credentials must be passed in the environment variables:
 // CLOUDDNS_CLIENT_ID, CLOUDDNS_EMAIL, CLOUDDNS_PASSWORD.
 func NewDNSProvider() (*DNSProvider, error) {
-    config, err := NewDNSProviderConfig()
-    if err != nil {
+	config, err := NewDNSProviderConfig()
+	if err != nil {
 		return nil, err
-    }
-    client := NewCloudDnsClient(config.ClientId, config.Email, config.Password, config.TTL)
-    return &DNSProvider{
-        client: client,
-        config: config,
-    }, nil
+	}
+	client := NewCloudDnsClient(config.ClientId, config.Email, config.Password, config.TTL)
+	return &DNSProvider{
+		client: client,
+		config: config,
+	}, nil
 }
 
 // NewDNSProviderConfig return a DNSProvider instance configured for Digital Ocean.
@@ -68,7 +68,7 @@ func NewDNSProviderConfig() (*Config, error) {
 	config.ClientId = values["CLOUDDNS_CLIENT_ID"]
 	config.Email = values["CLOUDDNS_EMAIL"]
 	config.Password = values["CLOUDDNS_PASSWORD"]
-    return config, nil
+	return config, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.
