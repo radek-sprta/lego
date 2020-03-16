@@ -106,7 +106,6 @@ func (c *cloudDnsClient) deleteRecordById(recordId string) (error) {
 }
 
 
-// TODO Rewrite to use makeRequest
 func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) ([]byte, error) {
     if c.AccessToken == "" {
         err := c.login()
@@ -122,6 +121,15 @@ func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) (
         return nil, err
     }
 
+    content, err := c.doRequest(req)
+    if err != nil {
+        return nil, err
+    }
+
+    return content, nil
+}
+
+func (c *cloudDnsClient) doRequest(req *http.Request) ([]byte, error) {
     resp, err := c.HTTPClient.Do(req)
     if err != nil {
         return nil, err
@@ -129,7 +137,6 @@ func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) (
     defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-        fmt.Println(err)
 		return nil, readError(req, resp)
 	}
 
@@ -137,7 +144,6 @@ func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) (
     if err != nil {
         return nil, err
     }
-
     return content, nil
 }
 
@@ -188,7 +194,6 @@ func (c *cloudDnsClient) getRecordId(domainId, recordName string) (string, error
     return recordId, nil
 }
 
-// TODO Rewrite to use makeRequest
 func (c *cloudDnsClient) login() (error) {
     reqData := authorization{Email: c.Email, Password: c.Password}
 	body, err := json.Marshal(reqData)
@@ -202,25 +207,13 @@ func (c *cloudDnsClient) login() (error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.HTTPClient.Do(req)
-    fmt.Println(resp)
-    fmt.Println(err)
+    content, err := c.doRequest(req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		return readError(req, resp)
-	}
-
-    body, err = ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return err
-    }
 
     var result map[string]interface{}
-    json.Unmarshal([]byte(body), &result)
+    json.Unmarshal([]byte(content), &result)
 
     authBlock := result["auth"].(map[string]interface{})
     c.AccessToken = authBlock["accessToken"].(string)
