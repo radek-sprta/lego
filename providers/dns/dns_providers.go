@@ -15,8 +15,10 @@ import (
 	"github.com/go-acme/lego/v3/providers/dns/checkdomain"
 	"github.com/go-acme/lego/v3/providers/dns/cloudflare"
 	"github.com/go-acme/lego/v3/providers/dns/cloudns"
+	"github.com/go-acme/lego/v3/providers/dns/clouddns"
 	"github.com/go-acme/lego/v3/providers/dns/cloudxns"
 	"github.com/go-acme/lego/v3/providers/dns/conoha"
+	"github.com/go-acme/lego/v3/providers/dns/constellix"
 	"github.com/go-acme/lego/v3/providers/dns/designate"
 	"github.com/go-acme/lego/v3/providers/dns/digitalocean"
 	"github.com/go-acme/lego/v3/providers/dns/dnsimple"
@@ -59,7 +61,9 @@ import (
 	"github.com/go-acme/lego/v3/providers/dns/rfc2136"
 	"github.com/go-acme/lego/v3/providers/dns/route53"
 	"github.com/go-acme/lego/v3/providers/dns/sakuracloud"
+	"github.com/go-acme/lego/v3/providers/dns/scaleway"
 	"github.com/go-acme/lego/v3/providers/dns/selectel"
+	"github.com/go-acme/lego/v3/providers/dns/servercow"
 	"github.com/go-acme/lego/v3/providers/dns/stackpath"
 	"github.com/go-acme/lego/v3/providers/dns/transip"
 	"github.com/go-acme/lego/v3/providers/dns/vegadns"
@@ -92,10 +96,14 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return cloudflare.NewDNSProvider()
 	case "cloudns":
 		return cloudns.NewDNSProvider()
+	case "clouddns":
+		return clouddns.NewDNSProvider()
 	case "cloudxns":
 		return cloudxns.NewDNSProvider()
 	case "conoha":
 		return conoha.NewDNSProvider()
+	case "constellix":
+		return constellix.NewDNSProvider()
 	case "designate":
 		return designate.NewDNSProvider()
 	case "digitalocean":
@@ -182,10 +190,14 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return rfc2136.NewDNSProvider()
 	case "sakuracloud":
 		return sakuracloud.NewDNSProvider()
-	case "stackpath":
-		return stackpath.NewDNSProvider()
+	case "scaleway":
+		return scaleway.NewDNSProvider()
 	case "selectel":
 		return selectel.NewDNSProvider()
+	case "servercow":
+		return servercow.NewDNSProvider()
+	case "stackpath":
+		return stackpath.NewDNSProvider()
 	case "transip":
 		return transip.NewDNSProvider()
 	case "vegadns":
