@@ -23,9 +23,9 @@ type authorization struct {
 	Password string `json:"password,omitempty"`
 }
 
-type cloudDnsClient struct {
+type Client struct {
 	AccessToken string
-	ClientId    string
+	ClientID    string
 	Email       string
 	Password    string
 	TTL         int
@@ -33,7 +33,7 @@ type cloudDnsClient struct {
 }
 
 type record struct {
-	DomainId string `json:"domainId,omitempty"`
+	DomainID string `json:"domainId,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Value    string `json:"value,omitempty"`
 	Type     string `json:"type,omitempty"`
@@ -45,10 +45,10 @@ type searchBlock struct {
 	Value    string
 }
 
-func NewCloudDnsClient(clientId string, email string, password string, ttl int) *cloudDnsClient {
-	return &cloudDnsClient{
+func NewClient(clientID string, email string, password string, ttl int) *Client {
+	return &Client{
 		AccessToken: "",
-		ClientId:    clientId,
+		ClientID:    clientID,
 		Email:       email,
 		Password:    password,
 		TTL:         ttl,
@@ -56,56 +56,59 @@ func NewCloudDnsClient(clientId string, email string, password string, ttl int) 
 	}
 }
 
-func (c *cloudDnsClient) AddRecord(zone, recordName, recordValue string) error {
-	domainId, err := c.getDomainId(zone)
-
-	err = c.addTxtRecord(domainId, recordName, recordValue)
+func (c *Client) AddRecord(zone, recordName, recordValue string) error {
+	domainID, err := c.getDomainID(zone)
 	if err != nil {
 		return err
 	}
 
-	err = c.publishRecords(domainId)
+	err = c.addTxtRecord(domainID, recordName, recordValue)
+	if err != nil {
+		return err
+	}
+
+	err = c.publishRecords(domainID)
 	return err
 }
 
-func (c *cloudDnsClient) addTxtRecord(domainId string, recordName string, recordValue string) error {
-	txtRecord := record{DomainId: domainId, Name: recordName, Value: recordValue, Type: "TXT"}
+func (c *Client) addTxtRecord(domainID string, recordName string, recordValue string) error {
+	txtRecord := record{DomainID: domainID, Name: recordName, Value: recordValue, Type: "TXT"}
 	body, err := json.Marshal(txtRecord)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.doApiRequest(http.MethodPost, "record-txt", bytes.NewReader(body))
+	_, err = c.doAPIRequest(http.MethodPost, "record-txt", bytes.NewReader(body))
 	return err
 }
 
-func (c *cloudDnsClient) DeleteRecord(zone, recordName string) error {
-	domainId, err := c.getDomainId(zone)
+func (c *Client) DeleteRecord(zone, recordName string) error {
+	domainID, err := c.getDomainID(zone)
 	if err != nil {
 		return err
 	}
 
-	recordId, err := c.getRecordId(domainId, recordName)
+	recordID, err := c.getRecordID(domainID, recordName)
 	if err != nil {
 		return err
 	}
 
-	err = c.deleteRecordById(recordId)
+	err = c.deleteRecordByID(recordID)
 	if err != nil {
 		return err
 	}
 
-	err = c.publishRecords(domainId)
+	err = c.publishRecords(domainID)
 	return err
 }
 
-func (c *cloudDnsClient) deleteRecordById(recordId string) error {
-	endpoint := fmt.Sprintf("record/%s", recordId)
-	_, err := c.doApiRequest(http.MethodDelete, endpoint, nil)
+func (c *Client) deleteRecordByID(recordID string) error {
+	endpoint := fmt.Sprintf("record/%s", recordID)
+	_, err := c.doAPIRequest(http.MethodDelete, endpoint, nil)
 	return err
 }
 
-func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) ([]byte, error) {
+func (c *Client) doAPIRequest(method, endpoint string, body io.Reader) ([]byte, error) {
 	if c.AccessToken == "" {
 		err := c.login()
 		if err != nil {
@@ -128,7 +131,7 @@ func (c *cloudDnsClient) doApiRequest(method, endpoint string, body io.Reader) (
 	return content, nil
 }
 
-func (c *cloudDnsClient) doRequest(req *http.Request) ([]byte, error) {
+func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -146,8 +149,8 @@ func (c *cloudDnsClient) doRequest(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
-func (c *cloudDnsClient) getDomainId(zone string) (string, error) {
-	searchClient := searchBlock{Name: "clientId", Operator: "eq", Value: c.ClientId}
+func (c *Client) getDomainID(zone string) (string, error) {
+	searchClient := searchBlock{Name: "clientId", Operator: "eq", Value: c.ClientID}
 	searchDomain := searchBlock{Name: "domainName", Operator: "eq", Value: zone}
 	searchBody := map[string][]searchBlock{"search": {searchClient, searchDomain}}
 
@@ -156,44 +159,50 @@ func (c *cloudDnsClient) getDomainId(zone string) (string, error) {
 		return "", err
 	}
 
-	resp, err := c.doApiRequest(http.MethodPost, "domain/search", bytes.NewReader(body))
+	resp, err := c.doAPIRequest(http.MethodPost, "domain/search", bytes.NewReader(body))
 	if err != nil {
 		return "", err
 	}
 
 	var result map[string]interface{}
-	json.Unmarshal(resp, &result)
+	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		return "", err
+	}
 
 	// Let's dig for the .["items"][0]["id"] path
 	items := result["items"].([]interface{})
 	domainDetails := items[0].(map[string]interface{})
-	domainId := domainDetails["id"].(string)
+	domainID := domainDetails["id"].(string)
 
-	return domainId, nil
+	return domainID, nil
 }
 
-func (c *cloudDnsClient) getRecordId(domainId, recordName string) (string, error) {
-	endpoint := fmt.Sprintf("domain/%s", domainId)
-	resp, err := c.doApiRequest(http.MethodGet, endpoint, nil)
+func (c *Client) getRecordID(domainID, recordName string) (string, error) {
+	endpoint := fmt.Sprintf("domain/%s", domainID)
+	resp, err := c.doAPIRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return "", err
 	}
 
 	var result map[string]interface{}
-	json.Unmarshal(resp, &result)
+	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		return "", err
+	}
 
-	recordId := ""
+	recordID := ""
 	entries := result["lastDomainRecordList"].([]interface{})
 	for _, entry := range entries {
 		entryMap := entry.(map[string]interface{})
 		if entryMap["name"] == recordName && entryMap["type"] == "TXT" {
-			recordId = entryMap["id"].(string)
+			recordID = entryMap["id"].(string)
 		}
 	}
-	return recordId, nil
+	return recordID, nil
 }
 
-func (c *cloudDnsClient) login() error {
+func (c *Client) login() error {
 	reqData := authorization{Email: c.Email, Password: c.Password}
 	body, err := json.Marshal(reqData)
 	if err != nil {
@@ -212,7 +221,10 @@ func (c *cloudDnsClient) login() error {
 	}
 
 	var result map[string]interface{}
-	json.Unmarshal([]byte(content), &result)
+	err = json.Unmarshal(content, &result)
+	if err != nil {
+		return err
+	}
 
 	authBlock := result["auth"].(map[string]interface{})
 	c.AccessToken = authBlock["accessToken"].(string)
@@ -220,7 +232,7 @@ func (c *cloudDnsClient) login() error {
 	return nil
 }
 
-func (c *cloudDnsClient) newRequest(method, reqURL string, body io.Reader) (*http.Request, error) {
+func (c *Client) newRequest(method, reqURL string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, reqURL, body)
 	if err != nil {
 		return nil, err
@@ -232,15 +244,15 @@ func (c *cloudDnsClient) newRequest(method, reqURL string, body io.Reader) (*htt
 	return req, nil
 }
 
-func (c *cloudDnsClient) publishRecords(domainId string) error {
-	soaTtl := map[string]int{"soaTtl": c.TTL}
-	body, err := json.Marshal(soaTtl)
+func (c *Client) publishRecords(domainID string) error {
+	soaTTL := map[string]int{"soaTtl": c.TTL}
+	body, err := json.Marshal(soaTTL)
 	if err != nil {
 		return err
 	}
 
-	endpoint := fmt.Sprintf("domain/%s/publish", domainId)
-	_, err = c.doApiRequest(http.MethodPut, endpoint, bytes.NewReader(body))
+	endpoint := fmt.Sprintf("domain/%s/publish", domainID)
+	_, err = c.doAPIRequest(http.MethodPut, endpoint, bytes.NewReader(body))
 	return err
 }
 

@@ -132,7 +132,7 @@ func TestNewDNSProviderConfig(t *testing.T) {
 			if len(test.expected) == 0 {
 				require.NoError(t, err)
 				require.NotNil(t, p)
-				require.NotNil(t, p.ClientId)
+				require.NotNil(t, p.ClientID)
 				require.NotNil(t, p.Email)
 				require.NotNil(t, p.Password)
 				require.NotNil(t, p.TTL)

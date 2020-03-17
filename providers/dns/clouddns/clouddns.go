@@ -1,4 +1,3 @@
-// TODO Comments are lies
 // Package clouddns implements a DNS provider for solving the DNS-01 challenge using CloudDNS API.
 package clouddns
 
@@ -13,7 +12,7 @@ import (
 
 // Config is used to configure the creation of the DNSProvider
 type Config struct {
-	ClientId string
+	ClientID string
 	Email    string
 	Password string
 
@@ -34,7 +33,7 @@ func NewDefaultConfig() *Config {
 // DNSProvider is an implementation of the challenge.Provider interface
 // that uses CloudDNS API to manage TXT records for a domain.
 type DNSProvider struct {
-	client *cloudDnsClient
+	client *Client
 	config *Config
 }
 
@@ -46,7 +45,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := NewCloudDnsClient(config.ClientId, config.Email, config.Password, config.TTL)
+	client := NewClient(config.ClientID, config.Email, config.Password, config.TTL)
 	return &DNSProvider{
 		client: client,
 		config: config,
@@ -65,7 +64,7 @@ func NewDNSProviderConfig() (*Config, error) {
 		return nil, errors.New("clouddns: the configuration of the DNS provider is nil")
 	}
 
-	config.ClientId = values["CLOUDDNS_CLIENT_ID"]
+	config.ClientID = values["CLOUDDNS_CLIENT_ID"]
 	config.Email = values["CLOUDDNS_EMAIL"]
 	config.Password = values["CLOUDDNS_PASSWORD"]
 	return config, nil
