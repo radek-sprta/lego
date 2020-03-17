@@ -13,16 +13,19 @@ import (
 const apiBaseURL = "https://admin.vshosting.cloud/clouddns"
 const loginURL = "https://admin.vshosting.cloud/api/public/auth/login"
 
+// Structure for Unmarshalling API error responses.
 type apiError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
+// Structure for Marshalling login data.
 type authorization struct {
 	Email    string `json:"email,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
+// Handles all communication with CloudDNS API.
 type Client struct {
 	AccessToken string
 	ClientID    string
@@ -32,6 +35,7 @@ type Client struct {
 	HTTPClient  *http.Client
 }
 
+// Represents a DNS record.
 type record struct {
 	DomainID string `json:"domainId,omitempty"`
 	Name     string `json:"name,omitempty"`
@@ -39,12 +43,14 @@ type record struct {
 	Type     string `json:"type,omitempty"`
 }
 
+// Used for searches in the CloudDNS API.
 type searchBlock struct {
 	Name     string
 	Operator string
 	Value    string
 }
 
+// Returns a Client instance configured to handle CloudDNS API communication.
 func NewClient(clientID string, email string, password string, ttl int) *Client {
 	return &Client{
 		AccessToken: "",
@@ -56,6 +62,7 @@ func NewClient(clientID string, email string, password string, ttl int) *Client 
 	}
 }
 
+// High level method to add a new record into CloudDNS zone.
 func (c *Client) AddRecord(zone, recordName, recordValue string) error {
 	domainID, err := c.getDomainID(zone)
 	if err != nil {
@@ -71,6 +78,7 @@ func (c *Client) AddRecord(zone, recordName, recordValue string) error {
 	return err
 }
 
+// Add a TXT record to zone.
 func (c *Client) addTxtRecord(domainID string, recordName string, recordValue string) error {
 	txtRecord := record{DomainID: domainID, Name: recordName, Value: recordValue, Type: "TXT"}
 	body, err := json.Marshal(txtRecord)
@@ -82,6 +90,7 @@ func (c *Client) addTxtRecord(domainID string, recordName string, recordValue st
 	return err
 }
 
+// High level method to remove a record from CloudDNS zone.
 func (c *Client) DeleteRecord(zone, recordName string) error {
 	domainID, err := c.getDomainID(zone)
 	if err != nil {
@@ -102,12 +111,14 @@ func (c *Client) DeleteRecord(zone, recordName string) error {
 	return err
 }
 
+// Remove DNS record with given ID.
 func (c *Client) deleteRecordByID(recordID string) error {
 	endpoint := fmt.Sprintf("record/%s", recordID)
 	_, err := c.doAPIRequest(http.MethodDelete, endpoint, nil)
 	return err
 }
 
+// Make a request against CloudDNS API.
 func (c *Client) doAPIRequest(method, endpoint string, body io.Reader) ([]byte, error) {
 	if c.AccessToken == "" {
 		err := c.login()
@@ -131,6 +142,7 @@ func (c *Client) doAPIRequest(method, endpoint string, body io.Reader) ([]byte, 
 	return content, nil
 }
 
+// Make an HTTP request.
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -149,6 +161,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
+// Get ID for given domain.
 func (c *Client) getDomainID(zone string) (string, error) {
 	searchClient := searchBlock{Name: "clientId", Operator: "eq", Value: c.ClientID}
 	searchDomain := searchBlock{Name: "domainName", Operator: "eq", Value: zone}
@@ -178,6 +191,7 @@ func (c *Client) getDomainID(zone string) (string, error) {
 	return domainID, nil
 }
 
+// Get ID for given record.
 func (c *Client) getRecordID(domainID, recordName string) (string, error) {
 	endpoint := fmt.Sprintf("domain/%s", domainID)
 	resp, err := c.doAPIRequest(http.MethodGet, endpoint, nil)
@@ -202,6 +216,7 @@ func (c *Client) getRecordID(domainID, recordName string) (string, error) {
 	return recordID, nil
 }
 
+// Login to CloudDNS API to get an accessToken.
 func (c *Client) login() error {
 	reqData := authorization{Email: c.Email, Password: c.Password}
 	body, err := json.Marshal(reqData)
@@ -232,6 +247,7 @@ func (c *Client) login() error {
 	return nil
 }
 
+// Create an HTTP request with headers necessary for CloudDNS API.
 func (c *Client) newRequest(method, reqURL string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, reqURL, body)
 	if err != nil {
@@ -244,6 +260,7 @@ func (c *Client) newRequest(method, reqURL string, body io.Reader) (*http.Reques
 	return req, nil
 }
 
+// Publish changes to DNS records.
 func (c *Client) publishRecords(domainID string) error {
 	soaTTL := map[string]int{"soaTtl": c.TTL}
 	body, err := json.Marshal(soaTTL)
@@ -256,6 +273,7 @@ func (c *Client) publishRecords(domainID string) error {
 	return err
 }
 
+// Handle API response errors.
 func readError(req *http.Request, resp *http.Response) error {
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -271,6 +289,7 @@ func readError(req *http.Request, resp *http.Response) error {
 	return fmt.Errorf("HTTP %d: %s: %s", resp.StatusCode, errInfo.Code, errInfo.Message)
 }
 
+// Return error message for unreadable response body.
 func toUnreadableBodyMessage(req *http.Request, rawBody []byte) string {
 	return fmt.Sprintf("the request %s sent a response with a body which is an invalid format: %q", req.URL, string(rawBody))
 }

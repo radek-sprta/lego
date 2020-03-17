@@ -10,7 +10,7 @@ import (
 	"github.com/go-acme/lego/v3/platform/config/env"
 )
 
-// Config is used to configure the creation of the DNSProvider
+// Config is used to configure the DNSProvider.
 type Config struct {
 	ClientID string
 	Email    string
@@ -21,7 +21,7 @@ type Config struct {
 	PollingInterval    time.Duration
 }
 
-// NewDefaultConfig returns a default configuration for the DNSProvider
+// NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
 	return &Config{
 		TTL:                env.GetOrDefaultInt("CLOUDDNS_TTL", 300),
@@ -30,7 +30,7 @@ func NewDefaultConfig() *Config {
 	}
 }
 
-// DNSProvider is an implementation of the challenge.Provider interface
+// DNSProvider is an implementation of the challenge. Provider interface
 // that uses CloudDNS API to manage TXT records for a domain.
 type DNSProvider struct {
 	client *Client
@@ -52,7 +52,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 	}, nil
 }
 
-// NewDNSProviderConfig return a DNSProvider instance configured for Digital Ocean.
+// NewDNSProviderConfig returns a DNSProvider configuration for CloudDNS.
 func NewDNSProviderConfig() (*Config, error) {
 	values, err := env.Get("CLOUDDNS_CLIENT_ID", "CLOUDDNS_EMAIL", "CLOUDDNS_PASSWORD")
 	if err != nil {
@@ -76,7 +76,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-// Present creates a TXT record using the specified parameters
+// Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	fqdn, value := dns01.GetRecord(domain, keyAuth)
 
@@ -93,7 +93,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	return nil
 }
 
-// CleanUp removes the TXT record matching the specified parameters
+// CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	fqdn, _ := dns01.GetRecord(domain, keyAuth)
 
