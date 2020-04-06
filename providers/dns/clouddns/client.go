@@ -13,13 +13,15 @@ import (
 const apiBaseURL = "https://admin.vshosting.cloud/clouddns"
 const loginURL = "https://admin.vshosting.cloud/api/public/auth/login"
 
-// Structure for Unmarshalling API error responses.
+// Structure for Unmarshaling API error responses.
 type apiError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Error struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
-// Structure for Marshalling login data.
+// Structure for Marshaling login data.
 type authorization struct {
 	Email    string `json:"email,omitempty"`
 	Password string `json:"password,omitempty"`
@@ -185,6 +187,9 @@ func (c *Client) getDomainID(zone string) (string, error) {
 
 	// Let's dig for the .["items"][0]["id"] path
 	items := result["items"].([]interface{})
+	if len(items) == 0 {
+		return "", fmt.Errorf("domain not found")
+	}
 	domainDetails := items[0].(map[string]interface{})
 	domainID := domainDetails["id"].(string)
 
@@ -286,7 +291,7 @@ func readError(req *http.Request, resp *http.Response) error {
 		return fmt.Errorf("apiError unmarshaling error: %v: %s", err, toUnreadableBodyMessage(req, content))
 	}
 
-	return fmt.Errorf("HTTP %d: %s: %s", resp.StatusCode, errInfo.Code, errInfo.Message)
+	return fmt.Errorf("HTTP %d: code %v: %s", resp.StatusCode, errInfo.Error.Code, errInfo.Error.Message)
 }
 
 // Return error message for unreadable response body.
