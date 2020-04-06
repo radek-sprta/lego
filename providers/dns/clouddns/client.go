@@ -27,7 +27,7 @@ type authorization struct {
 	Password string `json:"password,omitempty"`
 }
 
-// Handles all communication with CloudDNS API.
+// Client handles all communication with CloudDNS API.
 type Client struct {
 	AccessToken string
 	ClientID    string
@@ -52,7 +52,7 @@ type searchBlock struct {
 	Value    string
 }
 
-// Returns a Client instance configured to handle CloudDNS API communication.
+// NewClient returns a Client instance configured to handle CloudDNS API communication.
 func NewClient(clientID string, email string, password string, ttl int) *Client {
 	return &Client{
 		AccessToken: "",
@@ -64,7 +64,7 @@ func NewClient(clientID string, email string, password string, ttl int) *Client 
 	}
 }
 
-// High level method to add a new record into CloudDNS zone.
+// AddRecord is a high level method to add a new record into CloudDNS zone.
 func (c *Client) AddRecord(zone, recordName, recordValue string) error {
 	domainID, err := c.getDomainID(zone)
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *Client) addTxtRecord(domainID string, recordName string, recordValue st
 	return err
 }
 
-// High level method to remove a record from CloudDNS zone.
+// DeleteRecord is a high level method to remove a record from CloudDNS zone.
 func (c *Client) DeleteRecord(zone, recordName string) error {
 	domainID, err := c.getDomainID(zone)
 	if err != nil {
